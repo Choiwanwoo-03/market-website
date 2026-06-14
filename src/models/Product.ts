@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model, Types } from 'mongoose'
 
 export interface IProduct extends Document {
   name: string
-  category: string
+  categoryId: Types.ObjectId
   description: string
   price: number
   imageUrls: string[]
@@ -12,7 +12,7 @@ export interface IProduct extends Document {
 
 const productSchema = new Schema<IProduct>({
   name:        { type: String, required: true },
-  category:    { type: String, required: true },
+  categoryId:    { type: Schema.Types.ObjectId, ref: 'Category', required: true },
   description: { type: String, required: true },
   price:       { type: Number, required: true, min: 0 },
   imageUrls:   { type: [String], default: [], validate: {
