@@ -2,16 +2,36 @@ import Link from 'next/link'
 import dbConnect from '@/db/connect'
 import Product from '@/models/Product'
 import Image from 'next/image'
+import SearchBar from '@/components/SearchBar'
+import { Suspense } from 'react'
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ keyword?: string; minPrice?: string; maxPrice?: string }>
+}) {
+  const { keyword, minPrice, maxPrice } = await searchParams
   await dbConnect()
-  const products = await Product.find({}).sort({ _id: -1 }).lean()
+
+  const query: Record<string, unknown> = {}
+  if (keyword) query.name = { $regex: keyword, $options: 'i' }
+  if (minPrice || maxPrice) {
+    const priceFilter: Record<string, number> = {}
+    if (minPrice) priceFilter.$gte = Number(minPrice)
+    if (maxPrice) priceFilter.$lte = Number(maxPrice)
+    query.price = priceFilter
+  }
+
+  const products = await Product.find(query).sort({ _id: -1 }).lean()
 
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">상품 목록</h1>
+      <Suspense>
+        <SearchBar />
+      </Suspense>
       {products.length === 0 ? (
-        <p className="text-gray-500">등록된 상품이 없습니다.</p>
+        <p className="text-gray-500">검색 결과가 없습니다.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product) => (
@@ -19,8 +39,7 @@ export default async function HomePage() {
               <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                 {product.imageUrls[0] ? (
                   <div className="relative w-full h-48">
-                    <Image src={product.imageUrls[0]} alt={product.name} fill 
-                className="object-cover" />
+                    <Image src={product.imageUrls[0]} alt={product.name} fill className="object-cover" />
                   </div>
                 ) : (
                   <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
