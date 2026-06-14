@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import dbConnect from '@/db/connect'
 import Product from '@/models/Product'
 import Image from 'next/image'
-import PurchaseButton from '@/components/PurchaseButton'
+import AddToCartButton from '@/components/AddToCartButton'
 
 export default async function ProductDetailPage({
   params,
@@ -32,7 +32,7 @@ export default async function ProductDetailPage({
         <p className="text-3xl text-blue-600 font-bold mb-4">{product.price.toLocaleString()}원</p>
         <p className="text-gray-600 mb-4">{product.description}</p>
         <p className="text-gray-400 text-sm">재고: {product.stock}개</p>
-        <PurchaseButton productId={String(product._id)} />
+        <AddToCartButton productId={String(product._id)} />
       </div>
     </main>
   )

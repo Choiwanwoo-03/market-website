@@ -19,6 +19,9 @@ export default function Navbar() {
                 상품 관리
               </Link>
             )}
+            <Link href="/cart" className="text-sm hover:underline">
+              장바구니
+            </Link>
             <Link href="/mypage" className="text-sm hover:underline">
               마이페이지
             </Link>
