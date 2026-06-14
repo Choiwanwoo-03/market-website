@@ -3,7 +3,7 @@ dotenv.config({ path: '.env.local'})
 
 import dbConnect from './connect'
 import User from '../models/User'
-import SellerProfile from '../models/SellerProfile'
+import Category from '../models/Category'
 import Product from '../models/Product'
 import bcrypt from 'bcryptjs'
 
@@ -13,7 +13,7 @@ async function seed() {
 
   // 기존 더미 데이터 초기화
   await Product.deleteMany({})
-  await SellerProfile.deleteMany({})
+  await Category.deleteMany({})
   await User.deleteMany({ email: 'seller@market.com' })
   console.log('기존 더미 데이터 삭제 완료')
 
@@ -24,20 +24,24 @@ async function seed() {
     email: 'seller@market.com',
     password: hashedPassword,
     role: 'seller',
-  })
-
-  // 판매자 프로필 생성
-  await SellerProfile.create({
-    userId: seller._id,
     storeName: '키움 스토어',
   })
-  console.log('판매자 계정 생성 완료')
+
+  // 카테고리 더미 데이터
+  const categories = await Category.insertMany([
+    { name: '전자제품', description: '전자기기 및 IT 관련 상품' },
+    { name: '의류',    description: '남성/여성 의류 및 패션' },
+    { name: '식품',    description: '신선식품 및 가공식품' },
+    { name: '생활용품', description: '생활 편의 용품' },
+    { name: '도서',    description: '도서 및 교육 자료' },
+  ])
+  console.log(`카테고리 ${categories.length}개 등록 완료`)
 
   // 상품 더미 데이터
   const products = [
     {
       name: '무선 블루투스 이어폰',
-      category: '전자제품',
+      categoryId: categories[0]._id,
       description: '고음질 노이즈 캔슬링 무선 이어폰입니다.',
       price: 89000,
       imageUrls: [],
@@ -46,7 +50,7 @@ async function seed() {
     },
     {
       name: '스마트워치',
-      category: '전자제품',
+      categoryId: categories[0]._id,
       description: '심박수 측정 및 운동 기록이 가능한 스마트워치입니다.',
       price: 199000,
       imageUrls: [],
@@ -55,7 +59,7 @@ async function seed() {
     },
     {
       name: '흰색 반팔 티셔츠',
-      category: '의류',
+      categoryId: categories[1]._id,
       description: '면 100% 편안한 기본 반팔 티셔츠입니다.',
       price: 15000,
       imageUrls: [],
@@ -64,7 +68,7 @@ async function seed() {
     },
     {
       name: '슬림 청바지',
-      category: '의류',
+      categoryId: categories[1]._id,
       description: '슬림핏 데님 소재 청바지입니다.',
       price: 45000,
       imageUrls: [],
@@ -73,7 +77,7 @@ async function seed() {
     },
     {
       name: '유기농 사과 10개입',
-      category: '식품',
+      categoryId: categories[2]._id,
       description: '국내산 유기농 사과 10개 묶음 상품입니다.',
       price: 12000,
       imageUrls: [],
@@ -82,7 +86,7 @@ async function seed() {
     },
     {
       name: '원두커피 250g',
-      category: '식품',
+      categoryId: categories[2]._id,
       description: '에티오피아산 싱글 오리진 원두커피입니다.',
       price: 18000,
       imageUrls: [],
@@ -91,7 +95,7 @@ async function seed() {
     },
     {
       name: '미니 가습기',
-      category: '생활용품',
+      categoryId: categories[3]._id,
       description: '초음파 방식의 조용한 미니 가습기입니다.',
       price: 32000,
       imageUrls: [],
@@ -100,7 +104,7 @@ async function seed() {
     },
     {
       name: 'JavaScript 완벽 가이드',
-      category: '도서',
+      categoryId: categories[4]._id,
       description: '웹 개발자를 위한 JavaScript 입문부터 심화까지 다루는 도서입니다.',
       price: 25000,
       imageUrls: [],

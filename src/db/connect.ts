@@ -1,12 +1,15 @@
-import mongoose from 'mongoose'
+﻿import mongoose, { Mongoose } from 'mongoose'
 
-let cached = global.mongoose
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null }
+declare global {
+  var mongooseCache: {
+    conn: Mongoose | null
+    promise: Promise<Mongoose> | null
+  } | undefined
 }
 
-async function dbConnect() {
+const cached = global.mongooseCache ?? (global.mongooseCache = { conn: null, promise: null })
+
+async function dbConnect(): Promise<Mongoose> {
   const MONGODB_URI = process.env.MONGODB_URI
 
   if (!MONGODB_URI) {
@@ -24,13 +27,13 @@ async function dbConnect() {
   }
 
   try {
-    cached.conn = await cached.promise
+    cached.conn = await cached.promise!
   } catch (e) {
     cached.promise = null
     throw e
   }
 
-  return cached.conn
+  return cached.conn!
 }
 
 export default dbConnect
