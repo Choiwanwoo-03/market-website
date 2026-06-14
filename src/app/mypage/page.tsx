@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import dbConnect from '@/db/connect'
 import Order from '@/models/Order'
 
@@ -17,6 +18,9 @@ export default async function MyPage() {
         <p className="text-gray-600">이름: {session.user.name}</p>
         <p className="text-gray-600">이메일: {session.user.email}</p>
         <p className="text-gray-600">역할: {session.user.role}</p>
+        <Link href="/mypage/edit" className="inline-block mt-4 px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">
+          회원정보 수정
+        </Link>
       </div>
       <h2 className="text-xl font-semibold mb-4">주문 내역</h2>
       {orders.length === 0 ? (
