@@ -3,10 +3,18 @@ import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
-export default function AddToCartButton({ productId }: { productId: string }) {
+export default function AddToCartButton({ productId, stock }: { productId: string; stock: number }) {
   const { data: session } = useSession()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+
+  if (stock === 0) {
+    return (
+      <button disabled className="mt-6 w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-semibold cursor-not-allowed">
+        품절
+      </button>
+    )
+  }
 
   async function handleAddToCart() {
     if (!session) { router.push('/auth/login'); return }
