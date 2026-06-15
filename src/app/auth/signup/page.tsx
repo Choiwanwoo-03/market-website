@@ -1,16 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 export default function SignupPage() {
-  const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer')
   const [storeName, setStoreName] = useState('')
   const [error, setError] = useState('')
+  const [sent, setSent] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,7 +28,22 @@ export default function SignupPage() {
       return
     }
 
-    router.push('/auth/login')
+    setSent(true)
+  }
+
+  if (sent) {
+    return (
+      <main className="flex min-h-screen items-center justify-center">
+        <div className="text-center max-w-sm px-4">
+          <h1 className="text-2xl font-bold mb-4">가입 완료!</h1>
+          <p className="text-gray-600 mb-2">이메일로 인증 링크를 발송했습니다.</p>
+          <p className="text-gray-600 mb-6">이메일을 확인하여 인증을 완료해주세요.</p>
+          <a href="/auth/login" className="inline-block bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800">
+            로그인 페이지로
+          </a>
+        </div>
+      </main>
+    )
   }
 
   return (

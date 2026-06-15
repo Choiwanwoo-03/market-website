@@ -19,6 +19,8 @@ export interface IUser extends Document {
     _id?: mongoose.Types.ObjectId
   }[]
   storeName? : string
+  isVerified: boolean
+  verificationToken?: string | null
 }
 
 const userSchema = new Schema<IUser>({
@@ -28,7 +30,9 @@ const userSchema = new Schema<IUser>({
   role:              { type: String, enum: ['admin', 'seller', 'buyer'], required: true },
   createdAt:         { type: Date, default: Date.now },
   deliveryAddresses: { type: [deliveryAddressesSchema], default: [] },
-  storeName:         { type : String},
+  storeName:         { type : String },
+  isVerified:        { type: Boolean, default: true },
+  verificationToken: { type: String, default: null },
 })
 
 const User: Model<IUser> =
