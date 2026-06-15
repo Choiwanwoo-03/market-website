@@ -11,6 +11,7 @@ interface CartItem {
 export default function CheckoutPage() {
   const [items, setItems] = useState<CartItem[]>([])
   const [address, setAddress] = useState('')
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -26,25 +27,26 @@ export default function CheckoutPage() {
   const total = items.reduce((sum, item) => sum + item.productId.price * item.quantity, 0)
 
   async function handleCheckout() {
-    if (!address.trim()) { alert('배달 주소를 입력해주세요.'); return }
-    if (items.length === 0) { alert('장바구니가 비어있습니다.'); return }
+    if (!address.trim()) { setError('배달 주소를 입력해주세요.'); return }
+    if (items.length === 0) { setError('장바구니가 비어있습니다.'); return }
+    setError('')
     setLoading(true)
-    for (const item of items) {
-      await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productId: item.productId._id,
-          quantity: item.quantity,
-          deliveryAddress: address,
-        }),
-      })
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        deliveryAddress: address,
+        items: items.map((item) => ({ productId: item.productId._id, quantity: item.quantity })),
+      }),
+    })
+    if (res.ok) {
+      alert('구매가 완료되었습니다!')
+      router.push('/orders')
+    } else {
+      const data = await res.json()
+      setError(data.message || '구매 처리 중 오류가 발생했습니다.')
     }
-    for (const item of items) {
-      await fetch(`/api/cart/${item._id}`, { method: 'DELETE' })
-    }
-    alert('구매가 완료되었습니다!')
-    router.push('/mypage')
+    setLoading(false)
   }
 
   return (
@@ -73,6 +75,7 @@ export default function CheckoutPage() {
           className="w-full border rounded-lg px-4 py-3"
         />
       </div>
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
       <button
         onClick={handleCheckout}
         disabled={loading}

@@ -69,7 +69,7 @@ export default function CartPage() {
               <div key={item._id} className="border rounded-lg p-4 flex items-center gap-4">
                 <div className="relative w-20 h-20 shrink-0">
                   {item.productId.imageUrls[0] ? (
-                    <Image src={item.productId.imageUrls[0]} alt={item.productId.name} fill className="object-cover rounded" />
+                    <Image src={item.productId.imageUrls[0]} alt={item.productId.name} fill sizes="80px" className="object-cover rounded" />
                   ) : (
                     <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
                       <span className="text-xs text-gray-400">없음</span>

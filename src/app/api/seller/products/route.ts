@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import dbConnect from '@/db/connect'
 import Product from '@/models/Product'
-import Order from '@/models/Order'
+import OrderItem from '@/models/OrderItem'
 import Category from '@/models/Category'
 
 export async function GET() {
@@ -18,11 +18,8 @@ export async function GET() {
     .lean()
   const productsWithRevenue = await Promise.all(
     products.map(async (product) => {
-      const orders = await Order.find({ 'items.productId': product._id })
-      const revenue = orders.reduce((sum, order) => {
-        const item = order.items.find((i) => String(i.productId) === String(product._id))
-        return sum + (item ? item.price * item.quantity : 0)
-      }, 0)
+      const items = await OrderItem.find({ productId: product._id }).lean()
+      const revenue = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
       return { ...product, revenue }
     })
   )
