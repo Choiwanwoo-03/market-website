@@ -2,10 +2,12 @@
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { useCart } from '@/contexts/CartContext'
 
 export default function AddToCartButton({ productId, stock }: { productId: string; stock: number }) {
   const { data: session } = useSession()
   const router = useRouter()
+  const { refreshCart } = useCart()
   const [loading, setLoading] = useState(false)
 
   if (stock === 0) {
@@ -26,6 +28,7 @@ export default function AddToCartButton({ productId, stock }: { productId: strin
     })
     if (res.ok) {
       alert('장바구니에 추가되었습니다!')
+      await refreshCart()
     } else {
       const data = await res.json()
       alert(data.message || '장바구니 추가 실패')

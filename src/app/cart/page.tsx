@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useCart } from '@/contexts/CartContext'
 
 interface CartItem {
   _id: string
@@ -20,6 +21,7 @@ export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const { refreshCart } = useCart()
 
   useEffect(() => {
     fetch('/api/cart')
@@ -39,11 +41,13 @@ export default function CartPage() {
       body: JSON.stringify({ quantity }),
     })
     setItems((prev) => prev.map((item) => item._id === id ? { ...item, quantity } : item))
+    await refreshCart()
   }
 
   async function removeItem(id: string) {
     await fetch(`/api/cart/${id}`, { method: 'DELETE' })
     setItems((prev) => prev.filter((item) => item._id !== id))
+    await refreshCart()
   }
 
   const total = items.reduce((sum, item) => sum + item.productId.price * item.quantity, 0)

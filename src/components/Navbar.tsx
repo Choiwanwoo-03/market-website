@@ -1,9 +1,11 @@
 'use client'
 import Link from 'next/link'
 import { useSession, signOut } from 'next-auth/react'
+import { useCart } from '@/contexts/CartContext'
 
 export default function Navbar() {
   const { data: session } = useSession()
+  const { cartCount } = useCart()
 
   return (
     <nav className="border-b px-6 py-4 flex items-center justify-between">
@@ -19,8 +21,13 @@ export default function Navbar() {
                 상품 관리
               </Link>
             )}
-            <Link href="/cart" className="text-sm hover:underline">
+            <Link href="/cart" className="text-sm hover:underline flex items-center gap-1">
               장바구니
+              {cartCount > 0 && (
+                <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
             </Link>
             <Link href="/mypage" className="text-sm hover:underline">
               마이페이지
