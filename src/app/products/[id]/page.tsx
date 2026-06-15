@@ -19,8 +19,7 @@ export default async function ProductDetailPage({
       <div className="max-w-2xl mx-auto">
         {product.imageUrls[0] ? (
           <div className="relative w-full h-64 rounded-lg overflow-hidden mb-6">
-            <Image src={product.imageUrls[0]} alt={product.name} fill 
-        className="object-cover" />
+            <Image src={product.imageUrls[0]} alt={product.name} fill sizes="(max-width: 672px) 100vw, 672px" className="object-cover" />
           </div>
         ) : (
           <div className="w-full h-64 bg-gray-200 flex items-center justify-center 
