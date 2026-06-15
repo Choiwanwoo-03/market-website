@@ -34,12 +34,19 @@ export default async function HomePage({
         <p className="text-gray-500">검색 결과가 없습니다.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
+          {products.map((product, index) => (
             <Link key={String(product._id)} href={`/products/${String(product._id)}`} className="block">
               <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                 {product.imageUrls[0] ? (
                   <div className="relative w-full h-48">
-                    <Image src={product.imageUrls[0]} alt={product.name} fill className="object-cover" />
+                    <Image
+                      src={product.imageUrls[0]}
+                      alt={product.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      priority={index === 0}
+                      className="object-cover"
+                    />
                   </div>
                 ) : (
                   <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
