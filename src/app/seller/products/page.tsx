@@ -54,7 +54,7 @@ export default function SellerProductsPage() {
               <div className="flex items-center gap-4">
                 <div className="relative w-20 h-20 shrink-0">
                   {product.imageUrls[0] ? (
-                    <Image src={product.imageUrls[0]} alt={product.name} fill className="object-cover rounded" />
+                    <Image src={product.imageUrls[0]} alt={product.name} fill sizes="80px" className="object-cover rounded" />
                   ) : (
                     <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
                       <span className="text-xs text-gray-400">없음</span>

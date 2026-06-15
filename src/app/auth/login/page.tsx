@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
@@ -19,13 +19,18 @@ export default function LoginPage() {
       password,
       redirect: false,
     })
-    
+
     if (result?.error) {
       setError('이메일 또는 비밀번호가 올바르지 않습니다.')
       return
     }
 
-    router.push('/')
+    const session = await getSession()
+    if (session?.user?.role === 'seller') {
+      router.push('/seller/products')
+    } else {
+      router.push('/')
+    }
     router.refresh()
   }
 
