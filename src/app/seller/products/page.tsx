@@ -7,6 +7,7 @@ import Image from 'next/image'
 interface Product {
   _id: string
   name: string
+  categoryId: { _id: string; name: string } | null
   description: string
   price: number
   stock: number
@@ -63,6 +64,9 @@ export default function SellerProductsPage() {
                 </div>
                 <div className="flex-1">
                   <h2 className="font-semibold">{product.name}</h2>
+                  {product.categoryId && (
+                    <p className="text-xs text-gray-400">{product.categoryId.name}</p>
+                  )}
                   <p className="text-sm text-gray-600 line-clamp-1">{product.description}</p>
                   <p className="text-blue-600 font-bold">{product.price.toLocaleString()}원</p>
                 </div>

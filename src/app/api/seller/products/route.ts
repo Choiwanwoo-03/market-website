@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import dbConnect from '@/db/connect'
 import Product from '@/models/Product'
 import Order from '@/models/Order'
+import Category from '@/models/Category'
 
 export async function GET() {
   const session = await getServerSession(authOptions)
@@ -11,7 +12,10 @@ export async function GET() {
     return NextResponse.json({ message: '권한이 없습니다.' }, { status: 403 })
   }
   await dbConnect()
-  const products = await Product.find({ sellerId: session.user.id }).lean()
+  void Category
+  const products = await Product.find({ sellerId: session.user.id })
+    .populate('categoryId', 'name')
+    .lean()
   const productsWithRevenue = await Promise.all(
     products.map(async (product) => {
       const orders = await Order.find({ 'items.productId': product._id })
