@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import dbConnect from '@/db/connect'
 import Product from '@/models/Product'
+import Category from '@/models/Category'
 import Image from 'next/image'
 import SearchBar from '@/components/SearchBar'
 import { Suspense } from 'react'
@@ -8,13 +9,15 @@ import { Suspense } from 'react'
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ keyword?: string; minPrice?: string; maxPrice?: string }>
+  searchParams: Promise<{ keyword?: string; minPrice?: string; maxPrice?: string; categoryId?: string }>
 }) {
-  const { keyword, minPrice, maxPrice } = await searchParams
+  const { keyword, minPrice, maxPrice, categoryId } = await searchParams
   await dbConnect()
+  void Category
 
   const query: Record<string, unknown> = {}
   if (keyword) query.name = { $regex: keyword, $options: 'i' }
+  if (categoryId) query.categoryId = categoryId
   if (minPrice || maxPrice) {
     const priceFilter: Record<string, number> = {}
     if (minPrice) priceFilter.$gte = Number(minPrice)
@@ -22,13 +25,16 @@ export default async function HomePage({
     query.price = priceFilter
   }
 
-  const products = await Product.find(query).sort({ _id: -1 }).lean()
+  const [products, categories] = await Promise.all([
+    Product.find(query).sort({ _id: -1 }).lean(),
+    Category.find().sort({ name: 1 }).lean(),
+  ])
 
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">상품 목록</h1>
       <Suspense>
-        <SearchBar />
+        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.name }))} />
       </Suspense>
       {products.length === 0 ? (
         <p className="text-gray-500">검색 결과가 없습니다.</p>

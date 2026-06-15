@@ -2,7 +2,9 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useState } from 'react'
 
-export default function SearchBar() {
+interface Category { _id: string; name: string }
+
+export default function SearchBar({ categories }: { categories: Category[] }) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -10,11 +12,13 @@ export default function SearchBar() {
   const [keyword, setKeyword] = useState(searchParams.get('keyword') ?? '')
   const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') ?? '')
   const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') ?? '')
+  const [categoryId, setCategoryId] = useState(searchParams.get('categoryId') ?? '')
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     const params = new URLSearchParams()
     if (keyword) params.set('keyword', keyword)
+    if (categoryId) params.set('categoryId', categoryId)
     if (minPrice) params.set('minPrice', minPrice)
     if (maxPrice) params.set('maxPrice', maxPrice)
     router.push(`${pathname}?${params.toString()}`)
@@ -24,6 +28,7 @@ export default function SearchBar() {
     setKeyword('')
     setMinPrice('')
     setMaxPrice('')
+    setCategoryId('')
     router.push(pathname)
   }
 
@@ -38,6 +43,19 @@ export default function SearchBar() {
           placeholder="상품명 검색"
           className="w-full border rounded-lg px-4 py-2 text-sm"
         />
+      </div>
+      <div className="w-40">
+        <label className="block text-sm font-semibold mb-1">카테고리</label>
+        <select
+          value={categoryId}
+          onChange={(e) => setCategoryId(e.target.value)}
+          className="w-full border rounded-lg px-4 py-2 text-sm"
+        >
+          <option value="">전체</option>
+          {categories.map((cat) => (
+            <option key={cat._id} value={cat._id}>{cat.name}</option>
+          ))}
+        </select>
       </div>
       <div className="w-32">
         <label className="block text-sm font-semibold mb-1">최소 가격</label>
