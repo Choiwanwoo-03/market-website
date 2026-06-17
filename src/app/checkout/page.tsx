@@ -80,12 +80,12 @@ export default function CheckoutPage() {
         {items.map((item) => (
           <div key={item._id} className="flex justify-between text-sm py-1">
             <span>{item.productId.name} x {item.quantity}개</span>
-            <span>{(item.productId.price * item.quantity).toLocaleString()}원</span>
+            <span>₩{(item.productId.price * item.quantity).toLocaleString()}</span>
           </div>
         ))}
         <div className="border-t mt-3 pt-3 flex justify-between font-bold">
           <span>총 결제 금액</span>
-          <span>{total.toLocaleString()}원</span>
+          <span>₩{total.toLocaleString()}</span>
         </div>
       </div>
       <div className="mb-6 space-y-3">

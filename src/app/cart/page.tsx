@@ -78,20 +78,20 @@ export default function CartPage() {
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold">{item.productId.name}</p>
-                  <p className="text-blue-600">{item.productId.price.toLocaleString()}원</p>
+                  <p className="text-blue-600">₩{item.productId.price.toLocaleString()}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => updateQuantity(item._id, item.quantity - 1)} disabled={item.quantity <= 1} className="w-8 h-8 border rounded hover:bg-gray-100 disabled:opacity-40">-</button>
                   <span className="w-8 text-center">{item.quantity}</span>
                   <button onClick={() => updateQuantity(item._id, item.quantity + 1)} className="w-8 h-8 border rounded hover:bg-gray-100">+</button>
                 </div>
-                <p className="w-24 text-right font-semibold">{(item.productId.price * item.quantity).toLocaleString()}원</p>
+                <p className="w-24 text-right font-semibold">₩{(item.productId.price * item.quantity).toLocaleString()}</p>
                 <button onClick={() => removeItem(item._id)} className="text-red-500 hover:text-red-700 text-sm">삭제</button>
               </div>
             ))}
           </div>
           <div className="border-t pt-4 flex justify-between items-center">
-            <p className="text-xl font-bold">총 결제 금액: {total.toLocaleString()}원</p>
+            <p className="text-xl font-bold">총 결제 금액: ₩{total.toLocaleString()}</p>
             <button
               onClick={() => router.push('/checkout')}
               className="bg-black text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800"

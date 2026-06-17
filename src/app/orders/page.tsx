@@ -56,7 +56,7 @@ export default async function OrdersPage() {
                       hour: '2-digit', minute: '2-digit',
                     })}
                   </span>
-                  <span className="font-bold">{order.totalPrice.toLocaleString()}원</span>
+                  <span className="font-bold">₩{order.totalPrice.toLocaleString()}</span>
                 </div>
                 {items.map((item, idx) => {
                   const name = item.productId && typeof item.productId === 'object' && 'name' in item.productId
@@ -64,7 +64,7 @@ export default async function OrdersPage() {
                     : '알 수 없는 상품'
                   return (
                     <div key={idx} className="text-sm text-gray-700">
-                      {name} × {item.quantity}개 — {item.price.toLocaleString()}원
+                      {name} × {item.quantity}개 — ₩{item.price.toLocaleString()}
                     </div>
                   )
                 })}

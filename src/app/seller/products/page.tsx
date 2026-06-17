@@ -68,7 +68,7 @@ export default function SellerProductsPage() {
                     <p className="text-xs text-gray-400">{product.categoryId.name}</p>
                   )}
                   <p className="text-sm text-gray-600 line-clamp-1">{product.description}</p>
-                  <p className="text-blue-600 font-bold">{product.price.toLocaleString()}원</p>
+                  <p className="text-blue-600 font-bold">₩{product.price.toLocaleString()}</p>
                 </div>
                 <div className="flex gap-2">
                   <Link href={`/seller/products/${product._id}/edit`} className="border px-3 py-1.5 rounded text-sm hover:bg-gray-50">
@@ -90,11 +90,11 @@ export default function SellerProductsPage() {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">가격</p>
-                    <p className="font-bold">{product.price.toLocaleString()}원</p>
+                    <p className="font-bold">₩{product.price.toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">총 수입</p>
-                    <p className="font-bold text-blue-600">{product.revenue.toLocaleString()}원</p>
+                    <p className="font-bold text-blue-600">₩{product.revenue.toLocaleString()}</p>
                   </div>
                 </div>
               )}

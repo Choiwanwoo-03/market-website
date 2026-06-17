@@ -49,7 +49,7 @@ export default async function HomePage() {
                 <CardContent className="px-4 pt-4 pb-3">
                   <h2 className="font-semibold text-lg mb-1">{product.name}</h2>
                   <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
-                  <p className="text-blue-600 font-bold">{product.price.toLocaleString()}원</p>
+                  <p className="text-blue-600 font-bold">₩{product.price.toLocaleString()}</p>
                   {product.stock === 0 ? (
                     <span className="inline-block mt-1 px-2 py-0.5 bg-red-100 text-red-600 text-xs rounded-full font-semibold">품절</span>
                   ) : (
