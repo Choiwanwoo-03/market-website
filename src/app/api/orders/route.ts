@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import dbConnect from '@/db/connect'
 import Order from '@/models/Order'
-import OrderItem from '@/models/OrderItem'
 import Product from '@/models/Product'
 import Cart from '@/models/Cart'
 
@@ -38,16 +37,16 @@ export async function POST(req: NextRequest) {
 
   const totalPrice = products.reduce((sum, product, i) => sum + product!.price * items[i].quantity, 0)
 
-  const order = await Order.create({ userId: session.user.id, totalPrice, deliveryAddress })
-
-  await OrderItem.insertMany(
-    products.map((product, i) => ({
-      orderId:   order._id,
+  const order = await Order.create({
+    userId: session.user.id,
+    totalPrice,
+    deliveryAddress,
+    items: products.map((product, i) => ({
       productId: product!._id,
       quantity:  items[i].quantity,
       price:     product!.price,
-    }))
-  )
+    })),
+  })
 
   await Promise.all(
     products.map((product, i) =>
