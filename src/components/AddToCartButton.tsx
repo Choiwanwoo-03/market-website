@@ -4,7 +4,15 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/contexts/CartContext'
 
-export default function AddToCartButton({ productId, stock }: { productId: string; stock: number }) {
+export default function AddToCartButton({
+  productId,
+  stock,
+  className,
+}: {
+  productId: string
+  stock: number
+  className?: string
+}) {
   const { data: session } = useSession()
   const router = useRouter()
   const { refreshCart } = useCart()
@@ -12,7 +20,10 @@ export default function AddToCartButton({ productId, stock }: { productId: strin
 
   if (stock === 0) {
     return (
-      <button disabled className="mt-6 w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-semibold cursor-not-allowed">
+      <button
+        disabled
+        className={className ?? 'mt-6 w-full bg-gray-300 text-gray-500 py-3 rounded-lg font-semibold cursor-not-allowed'}
+      >
         품절
       </button>
     )
@@ -40,7 +51,7 @@ export default function AddToCartButton({ productId, stock }: { productId: strin
     <button
       onClick={handleAddToCart}
       disabled={loading}
-      className="mt-6 w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50"
+      className={className ?? 'mt-6 w-full bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50'}
     >
       {loading ? '추가 중...' : '장바구니 담기'}
     </button>

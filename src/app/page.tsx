@@ -4,6 +4,7 @@ import Product from '@/models/Product'
 import Category from '@/models/Category'
 import Image from 'next/image'
 import SearchBar from '@/components/SearchBar'
+import AddToCartButton from '@/components/AddToCartButton'
 import { Suspense } from 'react'
 
 export default async function HomePage({
@@ -41,8 +42,8 @@ export default async function HomePage({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product, index) => (
-            <Link key={String(product._id)} href={`/products/${String(product._id)}`} className="block">
-              <div className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+            <div key={String(product._id)} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+              <Link href={`/products/${String(product._id)}`} className="block flex-1">
                 {product.imageUrls[0] ? (
                   <div className="relative w-full h-48">
                     <Image
@@ -69,8 +70,15 @@ export default async function HomePage({
                     <p className="text-gray-400 text-xs mt-1">재고: {product.stock}개</p>
                   )}
                 </div>
+              </Link>
+              <div className="px-4 pb-4">
+                <AddToCartButton
+                  productId={String(product._id)}
+                  stock={product.stock}
+                  className="w-full bg-black text-white py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                />
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}
