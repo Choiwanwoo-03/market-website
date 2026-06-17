@@ -5,6 +5,7 @@ import Category from '@/models/Category'
 import Image from 'next/image'
 import SearchBar from '@/components/SearchBar'
 import AddToCartButton from '@/components/AddToCartButton'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Suspense } from 'react'
 
 export default async function HomePage() {
@@ -27,7 +28,7 @@ export default async function HomePage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product, index) => (
-            <div key={String(product._id)} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+            <Card key={String(product._id)} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col p-0 gap-0">
               <Link href={`/products/${String(product._id)}`} className="block flex-1">
                 {product.imageUrls[0] ? (
                   <div className="relative w-full h-48">
@@ -45,7 +46,7 @@ export default async function HomePage() {
                     <span className="text-gray-400">이미지 없음</span>
                   </div>
                 )}
-                <div className="p-4">
+                <CardContent className="px-4 pt-4 pb-3">
                   <h2 className="font-semibold text-lg mb-1">{product.name}</h2>
                   <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
                   <p className="text-blue-600 font-bold">{product.price.toLocaleString()}원</p>
@@ -54,16 +55,16 @@ export default async function HomePage() {
                   ) : (
                     <p className="text-gray-400 text-xs mt-1">재고: {product.stock}개</p>
                   )}
-                </div>
+                </CardContent>
               </Link>
-              <div className="px-4 pb-4">
+              <CardFooter className="px-4 py-3">
                 <AddToCartButton
                   productId={String(product._id)}
                   stock={product.stock}
                   className="w-full bg-black text-white py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
                 />
-              </div>
-            </div>
+              </CardFooter>
+            </Card>
           ))}
         </div>
       )}
