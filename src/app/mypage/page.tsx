@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import dbConnect from '@/db/connect'
 import Order from '@/models/Order'
+import WithdrawButton from '@/components/WithdrawButton'
+import Product from '@/models/Product'
 
 export default async function MyPage() {
   const session = await getServerSession(authOptions)
@@ -11,6 +13,9 @@ export default async function MyPage() {
   await dbConnect()
 
   const orders = await Order.find({ userId: session.user.id }).sort({ createdAt: -1 }).lean()
+  const hasProducts = session.user.role === 'seller'
+    ? (await Product.countDocuments({ sellerId: session.user.id })) > 0
+    : false
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -44,6 +49,9 @@ export default async function MyPage() {
           ))}
         </div>
       )}
+      <div className="mt-12 border-t pt-6">
+        <WithdrawButton email={session.user.email!} hasProducts={hasProducts} />
+      </div>
     </main>
   )
 }

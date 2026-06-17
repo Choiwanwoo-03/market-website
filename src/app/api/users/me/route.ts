@@ -4,6 +4,28 @@ import { authOptions } from '@/lib/auth'
 import dbConnect from '@/db/connect'
 import User from '@/models/User'
 import bcrypt from 'bcryptjs'
+import Cart from '@/models/Cart'
+import Product from '@/models/Product'
+
+export async function DELETE() {
+  const session = await getServerSession(authOptions)
+  if (!session) return NextResponse.json({ message: '로그인이 필요합니다.' }, { status: 401 })
+
+  await dbConnect()
+
+  const productCount = await Product.countDocuments({ sellerId: session.user.id })
+  if (productCount > 0) {
+    return NextResponse.json(
+      { message: '등록한 상품이 존재합니다. 상품 등록을 제거 후 진행바랍니다.' },
+      { status: 400 }
+    )
+  }
+
+  await Cart.deleteMany({ userId: session.user.id })
+  await User.findByIdAndDelete(session.user.id)
+
+  return NextResponse.json({ message: '회원탈퇴가 완료되었습니다.' })
+}
 
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions)
