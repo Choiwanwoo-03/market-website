@@ -8,9 +8,17 @@ interface CartItem {
   productId: { _id: string; name: string; price: number }
 }
 
+interface DeliveryAddress {
+  _id: string
+  label: string
+  address: string
+}
+
 export default function CheckoutPage() {
   const [items, setItems] = useState<CartItem[]>([])
+  const [savedAddresses, setSavedAddresses] = useState<DeliveryAddress[]>([])
   const [address, setAddress] = useState('')
+  const [selectedId, setSelectedId] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -22,7 +30,22 @@ export default function CheckoutPage() {
         return res.json()
       })
       .then((data) => { if (data) setItems(data) })
+
+    fetch('/api/users/addresses')
+      .then((res) => res.json())
+      .then((data) => { if (Array.isArray(data)) setSavedAddresses(data) })
   }, [router])
+
+  function handleSelectAddress(e: React.ChangeEvent<HTMLSelectElement>) {
+    const id = e.target.value
+    setSelectedId(id)
+    if (id === '') {
+      setAddress('')
+    } else {
+      const found = savedAddresses.find((a) => a._id === id)
+      if (found) setAddress(found.address)
+    }
+  }
 
   const total = items.reduce((sum, item) => sum + item.productId.price * item.quantity, 0)
 
@@ -65,13 +88,27 @@ export default function CheckoutPage() {
           <span>{total.toLocaleString()}원</span>
         </div>
       </div>
-      <div className="mb-6">
-        <label className="block font-semibold mb-2">배달 주소</label>
+      <div className="mb-6 space-y-3">
+        <label className="block font-semibold">배달 주소</label>
+        {savedAddresses.length > 0 && (
+          <select
+            value={selectedId}
+            onChange={handleSelectAddress}
+            className="w-full border rounded-lg px-4 py-3 text-sm"
+          >
+            <option value="">직접 입력</option>
+            {savedAddresses.map((addr) => (
+              <option key={addr._id} value={addr._id}>
+                {addr.label} — {addr.address}
+              </option>
+            ))}
+          </select>
+        )}
         <input
           type="text"
           placeholder="배달 주소를 입력해주세요"
           value={address}
-          onChange={(e) => setAddress(e.target.value)}
+          onChange={(e) => { setAddress(e.target.value); setSelectedId('') }}
           className="w-full border rounded-lg px-4 py-3"
         />
       </div>
