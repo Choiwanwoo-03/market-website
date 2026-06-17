@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 
-interface Category { _id: string; name: string }
+interface Category { _id: string; categoryName: string }
 
 const MAX_IMAGES = 3
 const MIN_W = 500, MIN_H = 600, MAX_W = 1000, MAX_H = 1000
@@ -93,7 +93,7 @@ export default function NewProductPage() {
           <label className="block text-sm font-semibold mb-1">카테고리</label>
           <select required value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} className="w-full border rounded-lg px-4 py-2">
             <option value="">카테고리 선택</option>
-            {categories.map((cat) => <option key={cat._id} value={cat._id}>{cat.name}</option>)}
+            {categories.map((cat) => <option key={cat._id} value={cat._id}>{cat.categoryName}</option>)}
           </select>
         </div>
         <div>

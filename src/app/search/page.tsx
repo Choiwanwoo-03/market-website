@@ -30,14 +30,14 @@ export default async function SearchPage({
 
   const [products, categories] = await Promise.all([
     Product.find(query).sort({ _id: -1 }).lean(),
-    Category.find().sort({ name: 1 }).lean(),
+    Category.find().sort({ categoryName: 1 }).lean()
   ])
 
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">검색 결과</h1>
       <Suspense>
-        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.name }))} />
+        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} />
       </Suspense>
       <Suspense>
         <PriceFilter />

@@ -14,7 +14,7 @@ export async function GET() {
   await dbConnect()
   void Category
   const products = await Product.find({ sellerId: session.user.id })
-    .populate('categoryId', 'name')
+    .populate('categoryId', 'categoryName')
     .lean()
   const productsWithRevenue = await Promise.all(
     products.map(async (product) => {

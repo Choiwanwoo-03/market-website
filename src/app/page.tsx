@@ -14,14 +14,14 @@ export default async function HomePage() {
 
   const [products, categories] = await Promise.all([
     Product.find().sort({ _id: -1 }).lean(),
-    Category.find().sort({ name: 1 }).lean(),
+    Category.find().sort({ categoryName: 1 }).lean(),
   ])
 
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">상품 목록</h1>
       <Suspense>
-        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.name }))} />
+        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} />
       </Suspense>
       {products.length === 0 ? (
         <p className="text-gray-500">등록된 상품이 없습니다.</p>
