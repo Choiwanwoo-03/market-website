@@ -42,11 +42,12 @@ export async function DELETE(req: NextRequest) {
   const { id } = await req.json()
 
   await dbConnect()
-  const user = await User.findById(session.user.id)
+  const user = await User.findByIdAndUpdate(
+    session.user.id,
+    { $pull: { deliveryAddresses: { _id: id } } },
+    { new: true }
+  )
   if (!user) return NextResponse.json({ message: '사용자를 찾을 수 없습니다.' }, { status: 404 })
-
-  user.deliveryAddresses.pull({ _id: id })
-  await user.save()
 
   return NextResponse.json({ message: '배송지가 삭제되었습니다.', deliveryAddresses: user.deliveryAddresses })
 }

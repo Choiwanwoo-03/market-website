@@ -1,80 +1,196 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import dbConnect from '@/db/connect'
-import Order from '@/models/Order'
-import OrderItem from '@/models/OrderItem'
-import Product from '@/models/Product'
-import { Types } from 'mongoose'
+'use client'
+import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
-interface PopulatedOrderItem {
-  _id: Types.ObjectId
-  orderId: Types.ObjectId
-  productId: { _id: Types.ObjectId; name: string } | Types.ObjectId
-  quantity: number
-  price: number
+interface DeliveryAddress {
+  _id: string
+  label: string
+  address: string
+  isDefault: boolean
 }
 
-export default async function MyPage() {
-  const session = await getServerSession(authOptions)
-  if (!session) redirect('/auth/login')
-  await dbConnect()
-  void Product
+export default function EditProfilePage() {
+  const { data: session } = useSession()
+  const router = useRouter()
 
-  const orders = await Order.find({ userId: session.user.id }).sort({ createdAt: -1 }).lean()
-  const orderIds = orders.map((o) => o._id)
-  const orderItems = (await OrderItem.find({ orderId: { $in: orderIds } })
-    .populate('productId', 'name')
-    .lean()) as unknown as PopulatedOrderItem[]
+  const [name, setName] = useState(session?.user.name ?? '')
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const itemsByOrderId: Record<string, PopulatedOrderItem[]> = {}
-  for (const item of orderItems) {
-    const key = String(item.orderId)
-    if (!itemsByOrderId[key]) itemsByOrderId[key] = []
-    itemsByOrderId[key].push(item)
+  const [addresses, setAddresses] = useState<DeliveryAddress[]>([])
+  const [newLabel, setNewLabel] = useState('')
+  const [newAddress, setNewAddress] = useState('')
+  const [addrError, setAddrError] = useState('')
+  const [addrLoading, setAddrLoading] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/users/addresses')
+      .then((res) => res.json())
+      .then((data) => { if (Array.isArray(data)) setAddresses(data) })
+  }, [])
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+    if (newPassword && newPassword !== confirmPassword) {
+      setError('새 비밀번호가 일치하지 않습니다.')
+      return
+    }
+    setLoading(true)
+    const body: Record<string, string> = { name }
+    if (newPassword) {
+      body.currentPassword = currentPassword
+      body.newPassword = newPassword
+    }
+    const res = await fetch('/api/users/me', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setSuccess(data.message)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } else {
+      setError(data.message || '수정 실패')
+    }
+    setLoading(false)
+  }
+
+  async function handleAddAddress(e: React.FormEvent) {
+    e.preventDefault()
+    setAddrError('')
+    if (!newAddress.trim()) { setAddrError('주소를 입력해주세요.'); return }
+    setAddrLoading(true)
+    const res = await fetch('/api/users/addresses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: newLabel, address: newAddress }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setAddresses(data.deliveryAddresses)
+      setNewLabel('')
+      setNewAddress('')
+    } else {
+      setAddrError(data.message || '주소 추가 실패')
+    }
+    setAddrLoading(false)
+  }
+
+  async function handleDeleteAddress(id: string) {
+    const res = await fetch('/api/users/addresses', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    const data = await res.json()
+    if (res.ok) setAddresses(data.deliveryAddresses)
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">마이페이지</h1>
-      <div className="mb-6 p-4 border rounded-lg">
-        <p className="text-gray-600">이름: {session.user.name}</p>
-        <p className="text-gray-600">이메일: {session.user.email}</p>
-        <p className="text-gray-600">역할: {session.user.role}</p>
-        <Link href="/mypage/edit" className="inline-block mt-4 px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">
-          회원정보 수정
-        </Link>
-      </div>
-      <h2 className="text-xl font-semibold mb-4">주문 내역</h2>
-      {orders.length === 0 ? (
-        <p className="text-gray-500">주문 내역이 없습니다.</p>
-      ) : (
-        <div className="space-y-4">
-          {orders.map((order) => {
-            const items = itemsByOrderId[String(order._id)] ?? []
-            return (
-              <div key={String(order._id)} className="border rounded-lg p-4">
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm text-gray-500">주문번호: {String(order._id)}</span>
-                  <span className="font-bold">{order.totalPrice.toLocaleString()}원</span>
-                </div>
-                {items.map((item, idx) => {
-                  const name = item.productId && typeof item.productId === 'object' && 'name' in item.productId
-                    ? (item.productId as { name: string }).name
-                    : '알 수 없는 상품'
-                  return (
-                    <div key={idx} className="text-sm">
-                      {name} × {item.quantity}개 — {item.price.toLocaleString()}원
-                    </div>
-                  )
-                })}
-                <p className="text-sm text-gray-500 mt-2">배송지: {order.deliveryAddress}</p>
-              </div>
-            )
-          })}
+    <main className="container mx-auto px-4 py-8 max-w-lg">
+      <h1 className="text-2xl font-bold mb-6">회원정보 수정</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-semibold mb-1">이메일 (변경 불가)</label>
+          <input type="email" disabled value={session?.user.email ?? ''} className="w-full border rounded-lg px-4 py-2 bg-gray-100 text-gray-500" />
         </div>
-      )}
+        <div>
+          <label className="block text-sm font-semibold mb-1">이름</label>
+          <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="w-full border rounded-lg px-4 py-2" />
+        </div>
+        <hr className="my-2" />
+        <p className="text-sm text-gray-500">비밀번호 변경 (변경하지 않으려면 비워두세요)</p>
+        <div>
+          <label className="block text-sm font-semibold mb-1">현재 비밀번호</label>
+          <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full border rounded-lg px-4 py-2" />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-1">새 비밀번호</label>
+          <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full border rounded-lg px-4 py-2" />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold mb-1">새 비밀번호 확인</label>
+          <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full border rounded-lg px-4 py-2" />
+        </div>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {success && <p className="text-green-600 text-sm">{success}</p>}
+        <div className="flex gap-3">
+          <button type="submit" disabled={loading} className="flex-1 bg-black text-white py-3 rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50">
+            {loading ? '수정 중...' : '수정하기'}
+          </button>
+          <button type="button" onClick={() => router.push('/mypage')} className="flex-1 border py-3 rounded-lg font-semibold hover:bg-gray-50">
+            취소
+          </button>
+        </div>
+      </form>
+
+      <hr className="my-8" />
+
+      <section>
+        <h2 className="text-xl font-semibold mb-4">배송지 관리</h2>
+        <div className="space-y-2 mb-4">
+          {addresses.length === 0 ? (
+            <p className="text-gray-500 text-sm">저장된 배송지가 없습니다.</p>
+          ) : (
+            addresses.map((addr) => (
+              <div key={addr._id} className="flex items-start justify-between border rounded-lg px-4 py-3">
+                <div>
+                  <p className="font-semibold text-sm">{addr.label}</p>
+                  <p className="text-gray-600 text-sm">{addr.address}</p>
+                </div>
+                <button
+                  onClick={() => handleDeleteAddress(addr._id)}
+                  className="text-red-500 hover:text-red-700 text-sm shrink-0 ml-4"
+                >
+                  삭제
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+        <form onSubmit={handleAddAddress} className="space-y-3 border rounded-lg p-4 bg-gray-50">
+          <p className="text-sm font-semibold">새 배송지 추가</p>
+          <div>
+            <label className="block text-sm mb-1">별칭 (예: 집, 회사)</label>
+            <input
+              type="text"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="집"
+              className="w-full border rounded-lg px-4 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">주소 *</label>
+            <input
+              type="text"
+              value={newAddress}
+              onChange={(e) => setNewAddress(e.target.value)}
+              placeholder="배송지 주소를 입력해주세요"
+              className="w-full border rounded-lg px-4 py-2 text-sm"
+              required
+            />
+          </div>
+          {addrError && <p className="text-red-500 text-sm">{addrError}</p>}
+          <button
+            type="submit"
+            disabled={addrLoading}
+            className="w-full bg-black text-white py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 disabled:opacity-50"
+          >
+            {addrLoading ? '추가 중...' : '배송지 추가'}
+          </button>
+        </form>
+      </section>
     </main>
   )
 }
