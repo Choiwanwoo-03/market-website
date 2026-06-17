@@ -1,17 +1,14 @@
 'use client'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
 interface Category { _id: string; name: string }
 
 export default function SearchBar({ categories }: { categories: Category[] }) {
   const router = useRouter()
-  const pathname = usePathname()
   const searchParams = useSearchParams()
 
   const [keyword, setKeyword] = useState(searchParams.get('keyword') ?? '')
-  const [minPrice, setMinPrice] = useState(searchParams.get('minPrice') ?? '')
-  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') ?? '')
   const [categoryId, setCategoryId] = useState(searchParams.get('categoryId') ?? '')
 
   function handleSearch(e: React.FormEvent) {
@@ -19,17 +16,7 @@ export default function SearchBar({ categories }: { categories: Category[] }) {
     const params = new URLSearchParams()
     if (keyword) params.set('keyword', keyword)
     if (categoryId) params.set('categoryId', categoryId)
-    if (minPrice) params.set('minPrice', minPrice)
-    if (maxPrice) params.set('maxPrice', maxPrice)
-    router.push(`${pathname}?${params.toString()}`)
-  }
-
-  function handleReset() {
-    setKeyword('')
-    setMinPrice('')
-    setMaxPrice('')
-    setCategoryId('')
-    router.push(pathname)
+    router.push(`/search?${params.toString()}`)
   }
 
   return (
@@ -57,33 +44,8 @@ export default function SearchBar({ categories }: { categories: Category[] }) {
           ))}
         </select>
       </div>
-      <div className="w-32">
-        <label className="block text-sm font-semibold mb-1">최소 가격</label>
-        <input
-          type="number"
-          min="0"
-          value={minPrice}
-          onChange={(e) => setMinPrice(e.target.value)}
-          placeholder="0"
-          className="w-full border rounded-lg px-4 py-2 text-sm"
-        />
-      </div>
-      <div className="w-32">
-        <label className="block text-sm font-semibold mb-1">최대 가격</label>
-        <input
-          type="number"
-          min="0"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-          placeholder="제한 없음"
-          className="w-full border rounded-lg px-4 py-2 text-sm"
-        />
-      </div>
       <button type="submit" className="px-4 py-2 bg-black text-white rounded-lg text-sm font-semibold hover:bg-gray-800">
         검색
-      </button>
-      <button type="button" onClick={handleReset} className="px-4 py-2 border rounded-lg text-sm font-semibold hover:bg-gray-50">
-        초기화
       </button>
     </form>
   )

@@ -5,25 +5,44 @@ import Category from '@/models/Category'
 import Image from 'next/image'
 import SearchBar from '@/components/SearchBar'
 import AddToCartButton from '@/components/AddToCartButton'
+import PriceFilter from '@/components/PriceFilter'
 import { Suspense } from 'react'
 
-export default async function HomePage() {
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ keyword?: string; categoryId?: string; minPrice?: string; maxPrice?: string }>
+}) {
+  const { keyword, categoryId, minPrice, maxPrice } = await searchParams
   await dbConnect()
   void Category
 
+  const query: Record<string, unknown> = {}
+  if (keyword) query.name = { $regex: keyword, $options: 'i' }
+  if (categoryId) query.categoryId = categoryId
+  if (minPrice || maxPrice) {
+    const priceFilter: Record<string, number> = {}
+    if (minPrice) priceFilter.$gte = Number(minPrice)
+    if (maxPrice) priceFilter.$lte = Number(maxPrice)
+    query.price = priceFilter
+  }
+
   const [products, categories] = await Promise.all([
-    Product.find().sort({ _id: -1 }).lean(),
+    Product.find(query).sort({ _id: -1 }).lean(),
     Category.find().sort({ name: 1 }).lean(),
   ])
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">상품 목록</h1>
+      <h1 className="text-2xl font-bold mb-6">검색 결과</h1>
       <Suspense>
         <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.name }))} />
       </Suspense>
+      <Suspense>
+        <PriceFilter />
+      </Suspense>
       {products.length === 0 ? (
-        <p className="text-gray-500">등록된 상품이 없습니다.</p>
+        <p className="text-gray-500">검색 결과가 없습니다.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product, index) => (
