@@ -15,13 +15,12 @@ export default function SearchBar({
   const searchParams = useSearchParams()
 
   const [keyword, setKeyword] = useState(searchParams.get('keyword') ?? '')
-  const [categoryId, setCategoryId] = useState(searchParams.get('categoryId') ?? '')
   const [sort, setSort] = useState(searchParams.get('sort') ?? 'latest')
 
   function buildParams(overrides: Record<string, string> = {}) {
     const params = new URLSearchParams()
     const kw = overrides.keyword ?? keyword
-    const cat = overrides.categoryId ?? categoryId
+    const cat = overrides.categoryId ?? searchParams.get('categoryId') ?? ''
     const s = overrides.sort ?? sort
     if (kw) params.set('keyword', kw)
     if (cat) params.set('categoryId', cat)
@@ -32,6 +31,18 @@ export default function SearchBar({
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
     router.push(`/search?${buildParams().toString()}`)
+  }
+
+  function handleCategoryChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const newCategoryId = e.target.value
+    const params = new URLSearchParams(searchParams.toString())
+    if (newCategoryId) {
+      params.set('categoryId', newCategoryId)
+    } else {
+      params.delete('categoryId')
+    }
+    params.delete('page')
+    router.push(`${basePath}?${params.toString()}`)
   }
 
   function handleSortChange(e: React.ChangeEvent<HTMLSelectElement>) {
@@ -55,8 +66,8 @@ export default function SearchBar({
       <div className="w-40">
         <label className="block text-sm font-semibold mb-1">카테고리</label>
         <select
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
+          value={searchParams.get('categoryId') ?? ''}
+          onChange={handleCategoryChange}
           className="w-full border rounded-lg px-4 py-2 text-sm"
         >
           <option value="">전체</option>

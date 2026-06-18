@@ -8,15 +8,18 @@ import AddToCartButton from '@/components/AddToCartButton'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Suspense } from 'react'
 import Pagination from '@/components/Pagination'
+import CategoryTabs from '@/components/CategoryTabs'
 
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; page?: string }>
+  searchParams: Promise<{ sort?: string; page?: string; categoryId?: string }>
 }) {
-  const { sort, page: pageParam } = await searchParams
+  const { sort, page: pageParam, categoryId } = await searchParams
+  const query: Record<string, unknown> = {}
+  if (categoryId) query.categoryId = categoryId
   const ITEMS_PER_PAGE = 8
   const page = Math.max(1, Number(pageParam) || 1)
   const sortQuery: Record<string, 1 | -1> =
@@ -28,8 +31,8 @@ export default async function HomePage({
   void Category
 
   const [products, total, categories] = await Promise.all([
-    Product.find().sort(sortQuery).skip((page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE).lean(),
-    Product.countDocuments(),
+    Product.find(query).sort(sortQuery).skip((page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE).lean(),
+    Product.countDocuments(query),
     Category.find().sort({ categoryName: 1 }).lean(),
   ])
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE)
@@ -37,6 +40,12 @@ export default async function HomePage({
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">상품 목록</h1>
+      <Suspense>
+        <CategoryTabs
+          categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))}
+          basePath="/"
+        />
+      </Suspense>
       <Suspense>
         <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} basePath="/" />
       </Suspense>

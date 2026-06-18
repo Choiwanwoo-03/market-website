@@ -8,6 +8,7 @@ import AddToCartButton from '@/components/AddToCartButton'
 import PriceFilter from '@/components/PriceFilter'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import Pagination from '@/components/Pagination'
+import CategoryTabs from '@/components/CategoryTabs'
 import { Suspense } from 'react'
 
 export default async function SearchPage({
@@ -46,6 +47,12 @@ export default async function SearchPage({
   return (
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">검색 결과</h1>
+      <Suspense>
+        <CategoryTabs
+          categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))}
+          basePath="/search"
+        />
+      </Suspense>
       <Suspense>
         <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} basePath="/search" />
       </Suspense>
