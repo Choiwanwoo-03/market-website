@@ -8,6 +8,8 @@ import AddToCartButton from '@/components/AddToCartButton'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Suspense } from 'react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function HomePage() {
   await dbConnect()
   void Category
