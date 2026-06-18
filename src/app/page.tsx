@@ -49,6 +49,7 @@ export default async function HomePage({
       <Suspense>
         <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} basePath="/" />
       </Suspense>
+      <p className="text-sm text-gray-500 mb-4">총 {total.toLocaleString()}개 상품</p>
       {products.length === 0 ? (
         <p className="text-gray-500">등록된 상품이 없습니다.</p>
       ) : (

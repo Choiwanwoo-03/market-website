@@ -59,6 +59,7 @@ export default async function SearchPage({
       <Suspense>
         <PriceFilter />
       </Suspense>
+      <p className="text-sm text-gray-500 mb-4">총 {total.toLocaleString()}개 상품</p>
       {products.length === 0 ? (
         <p className="text-gray-500">검색 결과가 없습니다.</p>
       ) : (
