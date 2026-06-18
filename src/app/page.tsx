@@ -10,12 +10,22 @@ import { Suspense } from 'react'
 
 export const dynamic = 'force-dynamic'
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string }>
+}) {
+  const { sort } = await searchParams
+  const sortQuery: Record<string, 1 | -1> =
+  sort === 'price_asc' ? { price: 1 } :
+  sort === 'price_desc' ? { price: -1 } :
+  { _id: -1 }
+    
   await dbConnect()
   void Category
 
   const [products, categories] = await Promise.all([
-    Product.find().sort({ _id: -1 }).lean(),
+    Product.find().sort(sortQuery).lean(),
     Category.find().sort({ categoryName: 1 }).lean(),
   ])
 
@@ -23,7 +33,7 @@ export default async function HomePage() {
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">상품 목록</h1>
       <Suspense>
-        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} />
+        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} basePath="/" />
       </Suspense>
       {products.length === 0 ? (
         <p className="text-gray-500">등록된 상품이 없습니다.</p>

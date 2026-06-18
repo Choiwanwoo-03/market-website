@@ -12,9 +12,9 @@ import { Suspense } from 'react'
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ keyword?: string; categoryId?: string; minPrice?: string; maxPrice?: string }>
+  searchParams: Promise<{ keyword?: string; categoryId?: string; minPrice?: string; maxPrice?: string; sort?: string }>
 }) {
-  const { keyword, categoryId, minPrice, maxPrice } = await searchParams
+  const { keyword, categoryId, minPrice, maxPrice, sort } = await searchParams
   await dbConnect()
   void Category
 
@@ -28,8 +28,13 @@ export default async function SearchPage({
     query.price = priceFilter
   }
 
+  const sortQuery: Record<string, 1 | -1> =
+  sort === 'price_asc' ? { price: 1 } :
+  sort === 'price_desc' ? { price: -1 } :
+  { _id: -1 }
+
   const [products, categories] = await Promise.all([
-    Product.find(query).sort({ _id: -1 }).lean(),
+    Product.find(query).sort(sortQuery).lean(),
     Category.find().sort({ categoryName: 1 }).lean()
   ])
 
@@ -37,7 +42,7 @@ export default async function SearchPage({
     <main className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">검색 결과</h1>
       <Suspense>
-        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} />
+        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} basePath="/search" />
       </Suspense>
       <Suspense>
         <PriceFilter />
