@@ -7,15 +7,18 @@ import SearchBar from '@/components/SearchBar'
 import AddToCartButton from '@/components/AddToCartButton'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Suspense } from 'react'
+import Pagination from '@/components/Pagination'
 
 export const dynamic = 'force-dynamic'
 
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string }>
+  searchParams: Promise<{ sort?: string; page?: string }>
 }) {
-  const { sort } = await searchParams
+  const { sort, page: pageParam } = await searchParams
+  const ITEMS_PER_PAGE = 8
+  const page = Math.max(1, Number(pageParam) || 1)
   const sortQuery: Record<string, 1 | -1> =
   sort === 'price_asc' ? { price: 1 } :
   sort === 'price_desc' ? { price: -1 } :
@@ -24,10 +27,12 @@ export default async function HomePage({
   await dbConnect()
   void Category
 
-  const [products, categories] = await Promise.all([
-    Product.find().sort(sortQuery).lean(),
+  const [products, total, categories] = await Promise.all([
+    Product.find().sort(sortQuery).skip((page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE).lean(),
+    Product.countDocuments(),
     Category.find().sort({ categoryName: 1 }).lean(),
   ])
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE)
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -80,6 +85,9 @@ export default async function HomePage({
           ))}
         </div>
       )}
+      <Suspense>
+        <Pagination currentPage={page} totalPages={totalPages} />
+      </Suspense>
     </main>
   )
 }

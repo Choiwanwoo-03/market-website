@@ -7,14 +7,17 @@ import SearchBar from '@/components/SearchBar'
 import AddToCartButton from '@/components/AddToCartButton'
 import PriceFilter from '@/components/PriceFilter'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import Pagination from '@/components/Pagination'
 import { Suspense } from 'react'
 
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ keyword?: string; categoryId?: string; minPrice?: string; maxPrice?: string; sort?: string }>
+  searchParams: Promise<{ keyword?: string; categoryId?: string; minPrice?: string; maxPrice?: string; sort?: string; page?: string }>
 }) {
-  const { keyword, categoryId, minPrice, maxPrice, sort } = await searchParams
+  const { keyword, categoryId, minPrice, maxPrice, sort, page: pageParam } = await searchParams
+  const ITEMS_PER_PAGE = 8
+  const page = Math.max(1, Number(pageParam) || 1)
   await dbConnect()
   void Category
 
@@ -33,10 +36,12 @@ export default async function SearchPage({
   sort === 'price_desc' ? { price: -1 } :
   { _id: -1 }
 
-  const [products, categories] = await Promise.all([
-    Product.find(query).sort(sortQuery).lean(),
-    Category.find().sort({ categoryName: 1 }).lean()
+  const [products, total, categories] = await Promise.all([
+    Product.find(query).sort(sortQuery).skip((page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE).lean(),
+    Product.countDocuments(query),
+    Category.find().sort({ categoryName: 1 }).lean(),
   ])
+  const totalPages = Math.ceil(total / ITEMS_PER_PAGE)
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -92,6 +97,9 @@ export default async function SearchPage({
           ))}
         </div>
       )}
+      <Suspense>
+        <Pagination currentPage={page} totalPages={totalPages} />
+      </Suspense>
     </main>
   )
 }
