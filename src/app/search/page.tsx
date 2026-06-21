@@ -10,6 +10,10 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import Pagination from '@/components/Pagination'
 import CategoryTabs from '@/components/CategoryTabs'
 import { Suspense } from 'react'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import WishlistButton from '@/components/WishlistButton'
+import Wishlist from '@/models/Wishlist'
 
 export default async function SearchPage({
   searchParams,
@@ -36,12 +40,16 @@ export default async function SearchPage({
   sort === 'price_asc' ? { price: 1 } :
   sort === 'price_desc' ? { price: -1 } :
   { _id: -1 }
+  
+  const session = await getServerSession(authOptions)
 
-  const [products, total, categories] = await Promise.all([
+  const [products, total, categories, wishlistItems] = await Promise.all([
     Product.find(query).sort(sortQuery).skip((page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE).lean(),
     Product.countDocuments(query),
     Category.find().sort({ categoryName: 1 }).lean(),
+    session ? Wishlist.find({ userId: session.user.id }).lean() : Promise.resolve([]),
   ])
+  const wishlistedIds = new Set(wishlistItems.map(w => String(w.productId)))
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE)
 
   return (
@@ -66,7 +74,7 @@ export default async function SearchPage({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((product, index) => (
             <Card key={String(product._id)} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col p-0 gap-0">
-              <Link href={`/products/${String(product._id)}`} className="block flex-1">
+              <Link href={`/products/${String(product._id)}`} className="block flex-1 relative">
                 {product.imageUrls[0] ? (
                   <div className="relative w-full h-48">
                     <Image
@@ -83,6 +91,10 @@ export default async function SearchPage({
                     <span className="text-gray-400">이미지 없음</span>
                   </div>
                 )}
+                <WishlistButton
+                  productId={String(product._id)}
+                  initialWishlisted={wishlistedIds.has(String(product._id))}
+                />
                 <CardContent className="px-4 pt-4 pb-3">
                   <h2 className="font-semibold text-lg mb-1">{product.name}</h2>
                   <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>

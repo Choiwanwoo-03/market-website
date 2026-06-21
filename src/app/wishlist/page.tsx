@@ -1,68 +1,37 @@
-import Link from 'next/link'
-import dbConnect from '@/db/connect'
-import Product from '@/models/Product'
-import Category from '@/models/Category'
-import Image from 'next/image'
-import SearchBar from '@/components/SearchBar'
-import AddToCartButton from '@/components/AddToCartButton'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
-import { Suspense } from 'react'
-import Pagination from '@/components/Pagination'
-import CategoryTabs from '@/components/CategoryTabs'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import WishlistButton from '@/components/WishlistButton'
+import { redirect } from 'next/navigation'
+import dbConnect from '@/db/connect'
 import Wishlist from '@/models/Wishlist'
+import Product from '@/models/Product'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import AddToCartButton from '@/components/AddToCartButton'
+import WishlistButton from '@/components/WishlistButton'
 
-export const dynamic = 'force-dynamic'
-
-export default async function HomePage({
-  searchParams,
-}: {
-  searchParams: Promise<{ sort?: string; page?: string; categoryId?: string }>
-}) {
-  const { sort, page: pageParam, categoryId } = await searchParams
-  const query: Record<string, unknown> = {}
-  if (categoryId) query.categoryId = categoryId
-  const ITEMS_PER_PAGE = 8
-  const page = Math.max(1, Number(pageParam) || 1)
-  const sortQuery: Record<string, 1 | -1> =
-  sort === 'price_asc' ? { price: 1 } :
-  sort === 'price_desc' ? { price: -1 } :
-  { _id: -1 }
-    
-  await dbConnect()
-  void Category
-
+export default async function WishlistPage() {
   const session = await getServerSession(authOptions)
+  if (!session) redirect('/auth/login')
 
-  const [products, total, categories, wishlistItems] = await Promise.all([
-    Product.find(query).sort(sortQuery).skip((page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE).lean(),
-    Product.countDocuments(query),
-    Category.find().sort({ categoryName: 1 }).lean(),
-    session ? Wishlist.find({ userId: session.user.id }).lean() : Promise.resolve([]),
-  ])
-  const wishlistedIds = new Set(wishlistItems.map(w => String(w.productId)))
-  const totalPages = Math.ceil(total / ITEMS_PER_PAGE)
+  await dbConnect()
+  const wishlistItems = await Wishlist.find({ userId: session.user.id }).lean()
+  const productIds = wishlistItems.map(w => w.productId)
+  const products = await Product.find({ _id: { $in: productIds } }).lean()
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">상품 목록</h1>
-      <Suspense>
-        <CategoryTabs
-          categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))}
-          basePath="/"
-        />
-      </Suspense>
-      <Suspense>
-        <SearchBar categories={categories.map((c) => ({ _id: String(c._id), name: c.categoryName }))} basePath="/" />
-      </Suspense>
-      <p className="text-sm text-gray-500 mb-4">총 {total.toLocaleString()}개 상품</p>
+      <h1 className="text-2xl font-bold mb-6">찜 목록</h1>
       {products.length === 0 ? (
-        <p className="text-gray-500">등록된 상품이 없습니다.</p>
+        <div className="text-center py-16">
+          <p className="text-gray-500 mb-4">찜한 상품이 없습니다.</p>
+          <Link href="/" className="text-sm bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+            쇼핑 계속하기
+          </Link>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product, index) => (
+          {products.map((product) => (
             <Card key={String(product._id)} className="overflow-hidden hover:shadow-lg transition-shadow flex flex-col p-0 gap-0">
               <Link href={`/products/${String(product._id)}`} className="block flex-1 relative">
                 {product.imageUrls[0] ? (
@@ -72,7 +41,6 @@ export default async function HomePage({
                       alt={product.name}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      priority={index === 0}
                       className="object-cover"
                     />
                   </div>
@@ -81,10 +49,7 @@ export default async function HomePage({
                     <span className="text-gray-400">이미지 없음</span>
                   </div>
                 )}
-                <WishlistButton
-                  productId={String(product._id)}
-                  initialWishlisted={wishlistedIds.has(String(product._id))}
-                />
+                <WishlistButton productId={String(product._id)} initialWishlisted={true} />
                 <CardContent className="px-4 pt-4 pb-3">
                   <h2 className="font-semibold text-lg mb-1">{product.name}</h2>
                   <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
@@ -107,9 +72,6 @@ export default async function HomePage({
           ))}
         </div>
       )}
-      <Suspense>
-        <Pagination currentPage={page} totalPages={totalPages} />
-      </Suspense>
     </main>
   )
 }

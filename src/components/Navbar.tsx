@@ -29,6 +29,9 @@ export default function Navbar() {
               </span>
             )}
           </Link>
+          <Link href="/wishlist" className="text-sm hover:underline">
+            찜 목록
+          </Link>
           {session.user.role === 'buyer' && (
             <Link href="/orders" className="text-sm hover:underline">
               구매내역
