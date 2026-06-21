@@ -18,13 +18,13 @@ export async function POST(req: NextRequest) {
   if (session.user.role === 'seller')
     return NextResponse.json({ message: '판매자는 구매할 수 없습니다.' }, { status: 403 })
   await dbConnect()
-  const { productId } = await req.json()
+  const { productId, quantity = 1 } = await req.json()
   const existing = await Cart.findOne({ userId: session.user.id, productId })
   if (existing) {
-    existing.quantity += 1
+    existing.quantity += quantity
     await existing.save()
     return NextResponse.json(existing)
   }
-  const item = await Cart.create({ userId: session.user.id, productId, quantity: 1 })
+  const item = await Cart.create({ userId: session.user.id, productId, quantity })
   return NextResponse.json(item, { status: 201 })
 }

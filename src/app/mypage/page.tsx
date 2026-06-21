@@ -39,7 +39,7 @@ export default async function MyPage() {
                 <span className="text-sm text-gray-500">주문번호: {String(order._id)}</span>
                 <span className="font-bold">₩{order.totalPrice.toLocaleString()}</span>
               </div>
-              {order.items.map((item, idx) => (
+              {(order.items ?? []).map((item, idx) => (
                 <div key={idx} className="text-sm">
                   상품 ID: {String(item.productId)} × {item.quantity}개 — ₩{item.price.toLocaleString()}
                 </div>

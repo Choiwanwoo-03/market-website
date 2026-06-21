@@ -33,7 +33,7 @@ export default async function OrdersPage() {
                 </span>
                 <span className="font-bold">₩{order.totalPrice.toLocaleString()}</span>
               </div>
-              {order.items.map((item, idx) => (
+              {(order.items ?? []).map((item, idx) => (
                 <div key={idx} className="text-sm text-gray-700">
                   상품 ID: {String(item.productId)} × {item.quantity}개 — ₩{item.price.toLocaleString()}
                 </div>
